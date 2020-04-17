@@ -25,6 +25,7 @@
 \usetikzlibrary{decorations.pathreplacing} % Adding libraries for decorations and paths
 \usepackage{tikzsymbols} % For amazing symbols ;) https://mirror.hmc.edu/ctan/graphics/pgf/contrib/tikzsymbols/tikzsymbols.pdf 
 \usepackage{blindtext} % To add some blind text in your paper
+\usepackage{hyperref}
 
 
 %---------------------------------------------------------------------------------
@@ -84,7 +85,7 @@
 %---------------------------------------------------------------------------------
 %	General information
 %---------------------------------------------------------------------------------
-\title{Culinary diversity in New York neighborhods} % Adds your title
+\title{Restaurant diversity in Boston neighborhods} % Adds your title
 \author{
 Brian Schaefer % Add your first and last name
     %\thanks{} % Adds a footnote to your title
@@ -116,15 +117,41 @@ Brian Schaefer % Add your first and last name
 
 \section{Introduction}
 
-New York is famous for its cultural diversity, especially with regard to food.
-The diversity of cuisines available within such a localized geographical area makes the city one of the greatest food capitals in the world.
-Many people who plan to move to the city may place high importance on culinary variety when choosing a neighborhood in which to stay.
-However, it may not be entirely clear which neighborhoods best fulfill this need.
-In this study, we leverage location data from Foursquare to classify neighborhoods in New York based on restaurant variety and identify the neighborhoods with the greatest culinary diversity.
+Residents and frequent visitors of Boston are certainly familiar with its famous cultural centers and the food options each one provides.
+Popular neighborhoods including Chinatown, North End, and the Seaport District are hot spots for those looking to indulge in the city's best Chinese, Italian, and seafood options.
+But, where should one go for a more diverse selection of restaurants?
+In this study, we classify neighborhoods in Boston based on restaurant variety and identify the neighborhoods with the most diverse options.
 
 \section{Data}
 
+To classify Boston's neighborhoods, we need geographical information about the neighborhoods as well as information on the types of restaurants that exist within each neighborhood.
+For the former, we use geographical coordinates provided by the City of Boston outlining the boundaries of each of Boston's neighborhoods\footnote{\url{https://data.boston.gov/dataset/boston-neighborhoods}}.
+For the latter, we use Foursquare\footnote{\url{https://www.foursquare.com}} to gather information on the types of restaurants nearby the geographical center of each neighborhood.
 
+The geographical data are provided in \texttt{GeoJSON} format.
+The dataset consists of multiple sets of \texttt{(longitude, latitude)} coordinates that define the boundaries of each neighborhood.
+We adapt functions from the \texttt{geojson\_utils} Python package\footnote{\url{https://pypi.org/project/geojson_utils/}} to calculate the coordinates of the centroid and area of each neighborhood given the list of boundary coordinates.
+Using the Python package \texttt{folium}, we can show the neighborhoods on an interactive map (Figure 1).
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{folium_map.png}
+\end{center}
+\caption{Map of Boston neighborhoods (blue) and geographical centers (black markers).}
+\end{figure}
+
+We use the Foursquare application programming interface (API) to search for restaurants nearby each neighborhood's geographical center using the category ``Food''\footnote{\texttt{categoryId 4d4b7105d754a06374d81259}, \url{https://developer.foursquare.com/docs/build-with-foursquare/categories/}.}.
+The Foursquare service returns the venue name, geographical coordinates, address, and category name for each of the ``Food'' venues found in the vicinity of each search point.
+Since we are interested in unique types of restaurants in each neighborhood, we take the category name for each venue and ignore venues in the same neighborhood with the same name.
+Figure 2 shows a summary of the relative frequencies of different types of venues across all neighborhoods. 
+There are a few venue types that occur with very high frequency, and a relatively large number of unique venue types.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{summary_bar.pdf}
+\end{center}
+\caption{Frequency of venue types across all Boston neighborhoods.}
+\end{figure}
 
 
 

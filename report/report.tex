@@ -148,13 +148,143 @@ There are a few venue types that occur with very high frequency, and a relativel
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{summary_bar.pdf}
+\includegraphics[width=0.5\textwidth]{summary_bar.pdf}
 \end{center}
 \caption{Frequency of venue types across all Boston neighborhoods.}
 \end{figure}
 
+\section{Methodology}
+
+We seek to classify neighborhoods based on the number of diverse restaurant types.
+If we simply count the number of different restaurant types, this will be biased towards neighborhoods that have many restaurants in total.
+To account for this, we define a ``diversity index`` as follows:
+$$
+\text{Diversity} = \frac{\text{Number of unique restaurant types}}{\text{Total number of restaurants}}.
+$$
+We plot a histogram of this metric in Figure~3, and it appears that the neighborhoods in Boston vary significantly in terms of diversity.
+The data approximately follow a normal distribution, with mean 0.61 and standard deviation 0.1.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{diversity_hist.pdf}
+\end{center}
+\caption{Diversity index for Boston neighborhoods}
+\end{figure}
+
+To categorize the neighborhoods, we use the $k$-means clustering algorithm on a few different versions of the dataset.
+This algorithm allocates data points into each of $k$ clusters by clustering together data points based on the similarity of the features for each data point.
+The result of this algorithm is a cluster number assignment, ranging from $0...k$. 
+We use the ``elbow'' method (Figure~4) to determine the optimal number of clusters.
+By running the algorithm multiple times, with different number of clusters $k$ each time, we can understand how increasing the number of clusters can improve the algorithm's description of the data.
+By eye, we choose the point of diminishing returns ($k$=3 in Figure~4) at which the rate of error improvement slows down (i.e., additional clusters do not provide useful information).
 
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{elbow.pdf}
+\end{center}
+\caption{Elbow method for determining number of clusters}
+\end{figure}
+
+
+\section{Results}
+
+We perform three clusterings of the neighborhoods, using (1) the total number of restaurants of each type in each neighborhood, (2) the proportion of restaurants of each type in each neighborhood, and (3) the diversity index for each neighborhood.
+
+\subsection{Restaurant counts}
+Using the Foursquare data, we total the numbers of restaurants labeled within each unique category name to arrive at a dataset of which we show in part below:
+\begin{center}
+\includegraphics[]{df_counts.png}
+\end{center}
+For a given neighborhood (leftmost column), each data point is the number of restaurants falling into the category designated by the header above.
+For example, in Back Bay there are three American Restaurants, two Bakeries, and one Breakfast Spot.
+
+Performing $k$-means clustering to categorize the neighborhoods into three clusters, we find that the diversity index can vary substantially within each cluster (Figure~5).
+The first two clusters have a diversity index ranging from $\sim0.4-0.7$, while the last cluster only has one neighborhood with a low diversity index.
+Upon inspection of the most common restaurant types, we find that cluster 0 consists of neighborhoods with mainly pizza places and caf\'es, cluster 2 consists of the neighborhood with a preponderance of Italian restaurants (North End), while cluster 1 is more diverse.
+This is a good start, as it correctly separates North End from the rest of the neighborhoods.
+However, using just the count of restaurants of a given type does not account for the total number of restaurants.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{hist_counts.pdf}
+\end{center}
+\caption{Distribution of diversity index within each cluster, for clustering on data consisting of the counts of each restaurant type.}
+\end{figure}
+
+
+
+\subsection{Restaurant proportions}
+By dividing each row of the dataset above by the total number of restaurants in each neighborhood, we get a dataset of the proportions of restaurants of each type:
+\begin{center}
+\includegraphics[]{df_prop.png}
+\end{center}
+For example, in Back Bay 8.1\% of restaurants are American Restaurants.
+
+
+Performing $k$-means clustering to categorize the neighborhoods again into three clusters, we still see variance of the diversity index within each cluster (Figure~6).
+Cluster 0 consists of North End and Bay Village, both of which have Italian restaurants as the most common type.
+Cluster 1 again consists of neighborhoods with many pizza places and caf\'es, and cluster 2 is the most varied.
+We are still not quite able to capture the clustering we want, so we move on to look only at the diversity index.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{hist_prop.pdf}
+\end{center}
+\caption{Distribution of diversity index within each cluster, for clustering on data consisting of the proportion of each restaurant type.}
+\end{figure}
+
+\subsection{Diversity index}
+We use the diversity index to form a much more limited dataset that already captures the gist of the question we set out to answer:
+\begin{center}
+\includegraphics[]{df_diversity.png}
+\end{center}
+
+Performing $k$-means clustering, this time we find that each cluster contains an independent range of diversity index values (Figure~7).
+Cluster 0 (diversity index $> 0.65$) is the most diverse, while cluster 2 (diversity index $<0.5$) is least diverse.
+Table~1 summarizes the clustering.
+The least diverse cluster now contains both Chinatown and North End, as expected for famous cultural centers.
+The other two neighborhoods are unexpected, but make sense: Longwood is mainly a medical campus, which we would not expect to host diverse food options, and Mattapan has a large Afro-Caribbean influence, so many of the restaurants are expected to be Caribbean or African.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{hist_diversity.pdf}
+\end{center}
+\caption{Distribution of diversity index within each cluster, for clustering on only the diversity index.}
+\end{figure}
+
+\begin{table}[]
+\begin{center}
+\begin{tabular}{| l | l |}
+\hline
+Cluster 0 & Bay Village, Beacon Hill, Brighton, Mission Hill, ... \\
+\hline
+Cluster 1 & Allston, Back Bay, Charlestonwn, Dorchester, ...      \\
+\hline
+Cluster 2 & Chinatown, North End, Longwood, Mattapan     \\        
+\hline
+\end{tabular}
+\end{center}
+\caption{Neighborhoods clustered on diversity index}
+\end{table}
+
+\section{Discussion}
+
+The final clustering of neighborhoods makes sense based on common knowledge of Boston's most famous neighborhoods.
+Are there any patterns in the geographical location of the most diverse food neighborhoods in Boston?
+In Figure~8, we show a map of the neighborhoods color-coded by cluster.
+Interestingly, we notice a string of three diverse neighborhoods on the west side of the city center, while the neighborhoods on the east side are less diverse.
+We also notice a few diverse neighborhoods further from the city center.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\textwidth]{final_clustering.png}
+\end{center}
+\caption{Map of Boston neighborhoods (blue outlines) and geographical centers sorted by cluster (green: least diverse, orange: moderately diverse, dark blue: most diverse).}
+\end{figure}
+
+\section{Conclusion}
+We clustered neighborhoods in Boston based on the diversity of the restaurants nearby the geographical centers of each neighborhood.
+As expected, famous cultural centers like Chinatown and North End are deemed some of the least diverse cities, while other neighborhoods like Back Bay are deemed much more diverse.
+We have compiled a list of neighborhoods offering a variety of dining options that would be great spots for both visitors and new residents to Boston with an adventurous palate.
 
 
 %---------------------------------------------------------------------------------
